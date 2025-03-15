@@ -1,0 +1,119 @@
+{
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {},
+      "source": [
+        "---\n",
+        "title: \"Mon Graphique\"\n",
+        "format: dashboard\n",
+        "---"
+      ],
+      "id": "4fcb13cb"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "import pandas as pd\n",
+        "import plotly.express as px\n",
+        "import numpy as np\n",
+        "from itables import show\n",
+        "import kaleido"
+      ],
+      "id": "54ed17e2",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sequenced = pd.read_excel(\"Scans_infos_treatment_Sequenced_datas_EG_2025.xlsx\")"
+      ],
+      "id": "0c21ff59",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "sequenced = sequenced.query(\"~Date_visit.isna()\")"
+      ],
+      "id": "3254362d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "# Vérifier et convertir les colonnes en format datetime\n",
+        "sequenced['Drugs_start'] = pd.to_datetime(sequenced['Drugs_start'], errors='coerce')\n",
+        "sequenced['Date_visit'] = pd.to_datetime(sequenced['Date_visit'], errors='coerce')\n",
+        "\n",
+        "# Vérifier s'il y a des valeurs NaT après conversion (problème de format)\n",
+        "print(sequenced[['Drugs_start', 'Date_visit']].isna().sum())"
+      ],
+      "id": "04776200",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "def time_in_month(drugs_start, visit):\n",
+        "    # Convertir en datetime\n",
+        "    drugs_start = pd.to_datetime(drugs_start, errors='coerce')\n",
+        "    visit = pd.to_datetime(visit, errors='coerce')\n",
+        "    \n",
+        "    # Calcul de la différence en mois\n",
+        "    diff = (visit.dt.year - drugs_start.dt.year) * 12 + (visit.dt.month - drugs_start.dt.month)\n",
+        "    \n",
+        "    # Remplacer les NaT par 0 et convertir en int\n",
+        "    return diff.fillna(0).astype(int)\n",
+        "\n",
+        "# Appliquer la fonction au DataFrame\n",
+        "sequenced[\"time_drugs_before_visit\"] = time_in_month(sequenced['Drugs_start'], sequenced['Date_visit'])"
+      ],
+      "id": "b1a59442",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "# Correction de plusieurs valeurs pour une colonne spécifique\n",
+        "sequenced['Drugs'] = sequenced['Drugs'].replace({'Oral flucticasone propionate': 'Oral fluticasone propionate'})"
+      ],
+      "id": "382c411d",
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "source": [
+        "plot_drug = px.bar(sequenced, x = \"Drugs\")\n",
+        "plot_drug.update_xaxes(categoryorder=\"total ascending\")\n",
+        "plot_drug.write_image(\"drugs_plot.jpg\")"
+      ],
+      "id": "d68ccdc1",
+      "execution_count": null,
+      "outputs": []
+    }
+  ],
+  "metadata": {
+    "kernelspec": {
+      "name": "python3",
+      "language": "python",
+      "display_name": "Python 3 (ipykernel)",
+      "path": "/Users/emiliegueguen/Desktop/GraphCourses2025/.venv/share/jupyter/kernels/python3"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+}

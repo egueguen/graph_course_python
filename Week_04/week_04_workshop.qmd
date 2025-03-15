@@ -1,0 +1,68 @@
+---
+title: "India TB Pathways Analysis"
+format: html
+author: Emilie Gueguen
+execute: 
+  echo: false
+---
+
+# Import the required packages
+
+```{python}
+import pandas as pd
+import plotly.express as px
+from itables import show
+```
+
+# Dataset
+
+## Description
+
+The India TB Pathways dataset is based on a study conducted in Vellore district, Tamil Nadu, India. It examines the pre-diagnostic costs and health-seeking behavior of 880 new adult pulmonary tuberculosis
+patients registered at Primary Health Centres (PHCs).
+
+
+```{python}
+data_tb = pd.read_csv("/Users/emiliegueguen/Desktop/GraphCourses2025/Week_04/Data/india_tb_pathways_and_costs.csv")
+show(data_tb)
+```
+
+## Tamil Nadu map
+
+![Map of Tamil Nadu. Vellore district is in the north-east.](tndistrict_1.png)
+
+# Graphical Representation
+
+```{python}
+px.histogram(data_tb, x="Form of TB",color = "Sex",
+title = "Relationship between Gender and Form of TB", text_auto=True,
+labels = {"Form of TB":"Form of Tuberculosis","Sex":"Gender"})
+```
+
+```{python}
+max_age = int(data_tb.Age.max())
+min_age = int(data_tb.Age.min())
+common_gender = data_tb.Sex.mode()[0]
+common_tb_form = data_tb["Form of TB"].mode()[0]
+```
+
+
+**Interpretation**
+
+Tuberculosis (TB) is more present in **`{python} common_gender`** than female. The TB form *`{python} common_tb_form`* is less abundant in the overall population than the TB form *Ini smear +*. 
+
+
+**Population age**
+
+- minimun : `{python} min_age` years
+- maximum : `{python} max_age` years
+
+**Education**
+
+```{python}
+education = data_tb.Education.mode()[0]
+nb = data_tb.Education.value_counts()
+nb_educ = int(nb["No Education"])
+```
+
+In the study population, `{python} nb_educ` have `{python} education`.

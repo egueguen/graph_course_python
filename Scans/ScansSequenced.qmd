@@ -1,0 +1,85 @@
+---
+title: "Mon Graphique"
+format: dashboard
+---
+
+```{python}
+import pandas as pd
+import plotly.express as px
+import numpy as np
+from itables import show
+import os
+from PIL import Image
+```
+
+```{python}
+sequenced = pd.read_excel("Scans_infos_treatment_Sequenced_datas_EG_2025.xlsx")
+```
+
+```{python}
+sequenced = sequenced.query("~Date_visit.isna()")
+```
+
+```{python}
+# Vérifier et convertir les colonnes en format datetime
+sequenced['Drugs_start'] = pd.to_datetime(sequenced['Drugs_start'], errors='coerce')
+sequenced['Date_visit'] = pd.to_datetime(sequenced['Date_visit'], errors='coerce')
+
+# Vérifier s'il y a des valeurs NaT après conversion (problème de format)
+print(sequenced[['Drugs_start', 'Date_visit']].isna().sum())
+
+```
+
+```{python}
+def time_in_month(drugs_start, visit):
+    # Convertir en datetime
+    drugs_start = pd.to_datetime(drugs_start, errors='coerce')
+    visit = pd.to_datetime(visit, errors='coerce')
+    
+    # Calcul de la différence en mois
+    diff = (visit.dt.year - drugs_start.dt.year) * 12 + (visit.dt.month - drugs_start.dt.month)
+    
+    # Remplacer les NaT par 0 et convertir en int
+    return diff.fillna(0).astype(int)
+
+# Appliquer la fonction au DataFrame
+sequenced["time_drugs_before_visit"] = time_in_month(sequenced['Drugs_start'], sequenced['Date_visit'])
+
+```
+
+```{python}
+# Correction de plusieurs valeurs pour une colonne spécifique
+sequenced['Drugs'] = sequenced['Drugs'].replace({'Oral flucticasone propionate': 'Oral fluticasone propionate'})
+
+```
+
+```{python}
+import plotly.express as px
+import os
+from PIL import Image
+
+plot_drug = px.bar(
+    sequenced,
+    x="Drugs",
+    title="Drug Distribution",
+    labels={"Drugs": "Drug Name", "Count": "Number of Occurrences"},
+    color="Drugs")
+plot_drug.write_image("drugs_plot.svg")
+```
+
+```{python}
+import plotly.express as px
+
+# Calculer la moyenne des valeurs par type de "Drugs"
+avg_data = sequenced.groupby("Drugs", as_index=False)["time_drugs_before_visit"].mean()
+
+# Créer le barplot avec les moyennes
+plot_avg = px.bar(avg_data, 
+                  x="Drugs", 
+                  y="time_drugs_before_visit", 
+                  labels={"time_drugs_before_visit": "Average Months"},
+                  title="Average Time Before Visit per Drug")
+
+plot_avg.show()
+```
+
