@@ -10,7 +10,7 @@ p = px.line(y=[1,2,3])
 ```
 
 # Layouts
-x
+
 ## Row {height="30%"}
 
 ### Column {width="30%"}
